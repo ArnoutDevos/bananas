@@ -27,6 +27,24 @@ class Scraper:
                 results.append({'link':link, 'count':count})
 
         return results
+    def get_news(self, keyword):
+        url = 'https://www.law-news.ch/kategorie/news'
+        response = requests.get(url)
+
+        results = []
+
+        soup = BeautifulSoup(response.text, 'lxml')
+
+        for item in soup.find_all("div", attrs={"class": "td_module_16 td_module_wrap td-animation-stack"}):
+            title = item.find("h3").get_text()
+            image_link = item.find("img", attrs={"class":"entry-thumb"}).get("src")
+
+            results.append({'title':title, 'image_link':image_link})
+        
+        #for headline in headlines:
+        #    results.append(headline.text)
+
+        return results
 
     def get_links(self, day_link):
         # Set the URL you want to webscrape from
