@@ -8,12 +8,12 @@ import pickle
 from pathlib import Path
 
 class Scraper:
-    
+
     def __init__(self):
         self.laws = [{'count':5, 'link':'http://www.arnoutdevos.net'}, {'count':4, 'link':'http://www.epfl.ch'}]
         self.data_map = {}
         self.keyword_list = ["VStG", "Strafprozess"] #"BGG","StHG", "BGG",
-            
+
     def getLaw(self, keyword):
         result = "empty"
         print(self.data_map.keys())
@@ -23,8 +23,8 @@ class Scraper:
         #    result = self.do_scrape(keyword)
         #    self.data_map[keyword]=result
         return result
-            
-        
+
+
     def masterScrape(self):
         my_file = Path('law_data.pkl')
         if False and my_file.is_file():
@@ -51,8 +51,8 @@ class Scraper:
             response = requests.get(article['link'])
             soup = BeautifulSoup(response.text, "html.parser")
             texts = soup.find("div", {"class":"content"})
-            
-            
+
+
 
             count = 0
             key = 0
@@ -72,7 +72,7 @@ class Scraper:
                                                 'link':article['link'],
                                                 'keyword':keywords[key],
                                                 'count':count})
-        
+
         print('Finished scraping for: ', str(keywords))
         return results
 
@@ -89,10 +89,10 @@ class Scraper:
             image_link = item.find("img", attrs={"class":"entry-thumb"}).get("src")
             url = item.find("a", attrs={'href': re.compile("^https://")}).get('href')
             date = item.find("time", attrs={"class":"entry-date updated td-module-date"}).get("datetime")
-            
+
             if(keyword in title):
                 results.append({'title':title, 'image_link':image_link, 'url':url, 'date': date})
-        
+
         #for headline in headlines:
         #    results.append(headline.text)
 
@@ -112,28 +112,44 @@ class Scraper:
         a_tags = soup.findAll('a', href=True)
 
         prefix = 'https://www.bger.ch/ext/eurospider/live/de/php/aza/http/index.php'
-        
-        
+
+
         html = requests.get(day_link).content
         df_list = pd.read_html(html)
         df = df_list[-1]
 
-        new_header = df.iloc[0] 
-        df = df[1:]
-        df.columns = new_header
+        print('###########')
+        #print(df.head())
 
+        #new_header = df.iloc[0]
+        #df = df[1:]
+        #df.columns = new_header
+        print('###########')
+        print(df.columns)
+        print('###########')
+        arrays = [df['Entscheiddat.'].iloc[::2].values,
+                                df['Geschäftsnum.'].iloc[::2].values,
+                                df['Sachgebiet'].iloc[::2].values,
+                                df['Sachgebiet'].iloc[1::2].values]
+        for arr in arrays:
+            print(len(arr))
+        print('###########')
         #print(df)
-        new_df = pd.DataFrame({'date':df['Entscheiddat.'].iloc[::2].values, 'article':df['Geschäftsnum.'].iloc[::2].values, 'info1':df['Sachgebiet'].iloc[::2].values, 'info2':df['Sachgebiet'].iloc[1::2].values})
+        new_df = pd.DataFrame({'date':df['Entscheiddat.'].iloc[::2].values,
+                                'article':df['Geschäftsnum.'].iloc[::2].values,
+                                'info1':df['Sachgebiet'].iloc[::2].values,
+                                'info2':df['Sachgebiet'].iloc[1::2].values})
 
         #print(new_df)
         result = []
         ix = 0
         for link in a_tags:
             if prefix in link['href']:
-                result.append({'date':new_df['date'][ix],
+                if ix < len(new_df['date']):
+                    result.append({'date':new_df['date'][ix],
                                 'link':link['href'],
                                 'article': link.get_text(),
                                 'info1': new_df['info1'][ix],
                                 'info2': new_df['info2'][ix]})
-                ix+=1
+                    ix+=1
         return result
