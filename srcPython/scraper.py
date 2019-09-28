@@ -3,17 +3,19 @@ import urllib.request
 import time
 from bs4 import BeautifulSoup
 import re
+import pickle
+from pathlib import Path
 
 class Scraper:
     
     def __init__(self):
         self.laws = [{'count':5, 'link':'http://www.arnoutdevos.net'}, {'count':4, 'link':'http://www.epfl.ch'}]
         self.data_map = {}
-        self.keyword_list = ["URG","VStG","DSG"] #"BGG","StHG", "BGG",
-        
+        self.keyword_list = ["VStG", "Strafprozess"] #"BGG","StHG", "BGG",
             
     def getLaw(self, keyword):
         result = "empty"
+        print(self.data_map.keys())
         if keyword in self.data_map.keys():
             result = self.data_map.get(keyword)
         #if result == None:
@@ -23,29 +25,46 @@ class Scraper:
             
         
     def masterScrape(self):
-        for keyword in self.keyword_list:
-            self.data_map[keyword] = self.do_scrape(keyword)
-        return "done"
+        my_file = Path('law_data.pkl')
+        if False and my_file.is_file():
+            with open('law_data.pkl', 'rb') as input:
+                self.data_map = pickle.load(input)
+            return "Scrape data loaded from file."
+        else:
+            self.data_map = self.do_scrape(self.keyword_list)
 
-    def do_scrape(self, keyword):
-        links = self.get_links(day_link=None)
+            with open('law_data.pkl', 'wb') as output:
+                pickle.dump(self.data_map, output, pickle.HIGHEST_PROTOCOL)
+            return "Scraped from scratch."
 
-        response = requests.get(links[0])
-        soup = BeautifulSoup(response.text, "html.parser")
-        result = soup.find("div", {"class":"content"})
+    def do_scrape(self, keywords):
+        articles = self.get_articles(day_link=None)
 
-        results = []
+        results = {}
 
-        for link in links:
-            response = requests.get(link)
+        for keyword in keywords:
+            results[keyword] = []
+
+        print('Starting scraping for: ', str(keywords))
+        for article in articles:
+            response = requests.get(article['link'])
             soup = BeautifulSoup(response.text, "html.parser")
             texts = soup.find("div", {"class":"content"})
 
-            count = texts.text.count(keyword)
+            count = 0
+            key = 0
+            article_text = texts.text
+
+            for ix, keyword in enumerate(keywords):
+                new_count = article_text.count(keyword)
+                if new_count > count:
+                    count = new_count
+                    key = ix
 
             if count > 0:
-                results.append({'link':link, 'count':count, 'texts':texts})
-
+                results[keywords[key]].append({'article':article['article'], 'link':article['link'], 'keyword':keywords[key], 'count':count})
+        
+        print('Finished scraping for: ', str(keywords))
         return results
     def get_news(self, keyword):
         url = 'https://www.law-news.ch/kategorie/news'
@@ -68,7 +87,7 @@ class Scraper:
 
         return results
 
-    def get_links(self, day_link):
+    def get_articles(self, day_link):
         # Set the URL you want to webscrape from
         if day_link is None:
             day_link = 'https://www.bger.ch/ext/eurospider/live/de/php/aza/http/index_aza.php?date=20190927&lang=de&mode=news'
@@ -87,6 +106,6 @@ class Scraper:
         
         for link in a_tags:
             if prefix in link['href']:
-                result.append(link['href'])
+                result.append({'link':link['href'], 'article': link.get_text()})
         
         return result
