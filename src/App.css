@@ -1,0 +1,59 @@
+.App {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  /* flex-wrap: wrap; */
+}
+.Messages {
+  /* text-align: center; */
+  width: 100vw;
+  display: flex;
+  flex-direction: row;
+  /* border-width: 2px; */
+  /* border-style: solid; */
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: top;
+  margin-top: 20px;
+}
+.App-logo {
+  height: 40vmin;
+}
+
+.App-headerLeft {
+  /* background-color: #282c34; */
+  width: 35vw;
+  /* min-height: 100vh; */
+  /* display: flex; */
+  /* flex-direction: column; */
+  /* align-items: center;
+  justify-content: center; */
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-headerRight {
+  /* background-color: #282c34; */
+  width: 35vw;
+  /* min-height: 100vh; */
+  /* display: flex; */
+  /* flex-direction: column; */
+  /* align-items: center;
+  justify-content: center; */
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #09d3ac;
+}
+
+.CardStyle {
+  border-width: 3px;
+  border-color: black;
+  border-style: solid;
+  width: 45vw;
+  margin: 10px;
+  /* background-color: pink; */
+}
