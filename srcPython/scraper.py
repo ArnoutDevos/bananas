@@ -153,3 +153,6 @@ class Scraper:
                                 'info2': new_df['info2'][ix]})
                     ix+=1
         return result
+    
+    def somefunc():
+        print(blaa)
