@@ -2,6 +2,7 @@ import requests
 import urllib.request
 import time
 from bs4 import BeautifulSoup
+import re
 
 class Scraper:
     
@@ -43,7 +44,7 @@ class Scraper:
             count = texts.text.count(keyword)
 
             if count > 0:
-                results.append({'link':link, 'count':count})
+                results.append({'link':link, 'count':count, 'texts':texts})
 
         return results
     def get_news(self, keyword):
@@ -57,8 +58,10 @@ class Scraper:
         for item in soup.find_all("div", attrs={"class": "td_module_16 td_module_wrap td-animation-stack"}):
             title = item.find("h3").get_text()
             image_link = item.find("img", attrs={"class":"entry-thumb"}).get("src")
-
-            results.append({'title':title, 'image_link':image_link})
+            url = item.find("a", attrs={'href': re.compile("^https://")}).get('href')
+            
+            if(keyword in title):
+                results.append({'title':title, 'image_link':image_link, 'url':url})
         
         #for headline in headlines:
         #    results.append(headline.text)
