@@ -1,0 +1,16 @@
+from flask import Flask, request, jsonify
+from scraper import Scraper
+import os
+
+# Init app
+app = Flask(__name__)
+
+scraper = Scraper()
+
+@app.route('/laws/<keyword>', methods=['GET'])
+def get_laws(keyword):
+    result = scraper.scrape(keyword=keyword)
+    return jsonify(result)
+
+if __name__ == '__main__':
+    app.run(debug=True)
