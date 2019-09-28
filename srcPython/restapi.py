@@ -9,8 +9,13 @@ scraper = Scraper()
 
 @app.route('/laws/<keyword>', methods=['GET'])
 def get_laws(keyword):
-    result = scraper.scrape(keyword=keyword)
+    result = scraper.getLaw(keyword=keyword)
     return str(result)
+
+@app.route('/scrapeall/', methods=['GET'])
+def scrapeall():
+    result = scraper.masterScrape()
+    return result
 
 @app.route('/news/<keyword>', methods=['GET'])
 def get_news(keyword):

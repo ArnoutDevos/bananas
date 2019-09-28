@@ -4,10 +4,29 @@ import time
 from bs4 import BeautifulSoup
 
 class Scraper:
+    
     def __init__(self):
         self.laws = [{'count':5, 'link':'http://www.arnoutdevos.net'}, {'count':4, 'link':'http://www.epfl.ch'}]
+        self.data_map = {}
+        self.keyword_list = ["URG","VStG","DSG"] #"BGG","StHG", "BGG",
+        
+            
+    def getLaw(self, keyword):
+        result = "empty"
+        if keyword in self.data_map.keys():
+            result = self.data_map.get(keyword)
+        #if result == None:
+        #    result = self.do_scrape(keyword)
+        #    self.data_map[keyword]=result
+        return result
+            
+        
+    def masterScrape(self):
+        for keyword in self.keyword_list:
+            self.data_map[keyword] = self.do_scrape(keyword)
+        return "done"
 
-    def scrape(self, keyword):
+    def do_scrape(self, keyword):
         links = self.get_links(day_link=None)
 
         response = requests.get(links[0])
