@@ -50,6 +50,8 @@ class Scraper:
             response = requests.get(article['link'])
             soup = BeautifulSoup(response.text, "html.parser")
             texts = soup.find("div", {"class":"content"})
+            
+            
 
             count = 0
             key = 0
@@ -78,9 +80,10 @@ class Scraper:
             title = item.find("h3").get_text()
             image_link = item.find("img", attrs={"class":"entry-thumb"}).get("src")
             url = item.find("a", attrs={'href': re.compile("^https://")}).get('href')
+            date = item.find("time", attrs={"class":"entry-date updated td-module-date"}).get("datetime")
             
             if(keyword in title):
-                results.append({'title':title, 'image_link':image_link, 'url':url})
+                results.append({'title':title, 'image_link':image_link, 'url':url, 'date': date})
         
         #for headline in headlines:
         #    results.append(headline.text)
