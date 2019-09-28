@@ -1,4 +1,5 @@
 import requests
+import pandas as pd
 import urllib.request
 import time
 from bs4 import BeautifulSoup
@@ -61,10 +62,17 @@ class Scraper:
                     key = ix
 
             if count > 0:
-                results[keywords[key]].append({'article':article['article'], 'link':article['link'], 'keyword':keywords[key], 'count':count})
+                results[keywords[key]].append({'article':article['article'],
+                                                'date': article['date'],
+                                                'info1': article['info1'],
+                                                'info2': article['info2'],
+                                                'link':article['link'],
+                                                'keyword':keywords[key],
+                                                'count':count})
         
         print('Finished scraping for: ', str(keywords))
         return results
+
     def get_news(self, keyword):
         url = 'https://www.law-news.ch/kategorie/news'
         response = requests.get(url)
@@ -99,10 +107,27 @@ class Scraper:
 
         prefix = 'https://www.bger.ch/ext/eurospider/live/de/php/aza/http/index.php'
         
-        result = []
         
+        html = requests.get(day_link).content
+        df_list = pd.read_html(html)
+        df = df_list[-1]
+
+        new_header = df.iloc[0] 
+        df = df[1:]
+        df.columns = new_header
+
+        #print(df)
+        new_df = pd.DataFrame({'date':df['Entscheiddat.'].iloc[::2].values, 'article':df['Geschäftsnum.'].iloc[::2].values, 'info1':df['Sachgebiet'].iloc[::2].values, 'info2':df['Sachgebiet'].iloc[1::2].values})
+
+        #print(new_df)
+        result = []
+        ix = 0
         for link in a_tags:
             if prefix in link['href']:
-                result.append({'link':link['href'], 'article': link.get_text()})
-        
+                result.append({'date':new_df['date'][ix],
+                                'link':link['href'],
+                                'article': link.get_text(),
+                                'info1': new_df['info1'][ix],
+                                'info2': new_df['info2'][ix]})
+                ix+=1
         return result
