@@ -1,13 +1,100 @@
 import React from "react";
-import logo from "./logo.svg";
+import suits from "./logo.png";
+import chris from "./chris.jpg";
+import title from "./title.png";
+import loadingGif from "./../src/loadingGif.gif";
 import "./App.css";
 import * as Diff from "diff";
+import * as Icons from "@fortawesome/fontawesome-free/css/all.css";
+import Button from "@material-ui/core/Button";
+import { makeStyles } from "@material-ui/core/styles";
+import Card from "@material-ui/core/Card";
+import CardActions from "@material-ui/core/CardActions";
+import CardContent from "@material-ui/core/CardContent";
+import Typography from "@material-ui/core/Typography";
+import IconButton from "@material-ui/core/IconButton";
+import ShareIcon from "@material-ui/icons/Share";
+import FavoriteIcon from "@material-ui/icons/Favorite";
+import Checkbox, { CheckboxProps } from "@material-ui/core/Checkbox";
+import CheckBoxIcon from "@material-ui/icons/CheckBox";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
 
+// import * as whatever from "bootstrap/dist/css/bootstrap.css";
+
+const useStyles = makeStyles({
+  card: {
+    minWidth: 275
+  },
+  bullet: {
+    display: "inline-block",
+    margin: "0 2px",
+    transform: "scale(0.8)"
+  },
+  title: {
+    fontSize: 14
+  },
+  pos: {
+    marginBottom: 12
+  }
+});
 export default class App extends React.Component {
   state = {
     textLeft: "",
     res: undefined,
-    longestLength: 0
+    longestLength: 0,
+    landingPage: true,
+    showLawCheck: false,
+    courtCheck: "loading",
+    courtCheck2: "loading",
+    scrapingStatus: "Scraping the following keywords from www.bger.ch",
+    scrapedNews: "loading",
+    emailText1:
+      "Dear Colleague,%0D%0A%0D%0AThis change in the law might be of interest to you: ",
+    emailText2: "%0D%0A%0D%0APowered by Dr. Law",
+    heartColor: true,
+    clickedVStg: true
+  };
+  _scrapeData = () => {
+    fetch("http://localhost:5000/scrapeall/")
+      .then(res => {
+        console.log(res);
+        if (res.ok) {
+          fetch("http://localhost:5000/laws/VStG", {
+            headers: {
+              "Content-Type": "application/json"
+            }
+          })
+            .then(async res1 => {
+              const response = await res1.json();
+
+              console.log(response);
+              this.setState({ courtCheck: response });
+            })
+            .catch(err => console.log(err));
+
+          fetch("http://localhost:5000/laws/Strafprozess", {
+            headers: {
+              "Content-Type": "application/json"
+            }
+          })
+            .then(async res1 => {
+              const response = await res1.json();
+
+              console.log(response);
+              this.setState({ courtCheck2: response });
+            })
+            .catch(err => console.log(err));
+        }
+      })
+      .catch(err => console.log(err));
+
+    fetch("http://localhost:5000/news/recht")
+      .then(async res => {
+        const response = await res.json();
+
+        this.setState({ scrapedNews: response });
+      })
+      .catch(err => console.log(err));
   };
 
   _handleCallData = () => {
@@ -37,164 +124,936 @@ export default class App extends React.Component {
 
   componentDidMount() {
     this._handleCallData();
+    this._scrapeData();
   }
   render() {
-    if (this.state.textLeft.length !== 0) {
-      return (
-        <div style={{}}>
-          <div
-            style={{
-              "border-width": "1px",
-              "border-style": "dotted",
-              "border-color": "black",
-              position: "absolute",
-              // flex: 1,
-              left: "50vw",
-              height: "3000px"
-            }}
-          />
-          <div
-            style={{
-              "border-width": "2px",
-              "border-style": "solid",
+    const classes = useStyles;
 
-              // width: "100vw",
-              height: "70px",
-              "background-color": "black",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              flexDirection: "column"
-            }}
-          >
-            <h2
+    if (this.state.landingPage === false) {
+      if (this.state.showLawCheck) {
+        return (
+          <div className="LawCheck">
+            <div
+              onClick={() => this.setState({ showLawCheck: false })}
+              className={"far fa-times-circle"}
               style={{
-                color: "white",
-                margin: 0,
-                top: 0,
-                "margin-top": 0,
-                padding: 0
+                "font-size": "48px",
+                color: "red",
+                position: "absolute",
+                top: "16px",
+                left: "16px"
               }}
-            >
-              Bundesgesetz über den Datenschutz (DSG)
-            </h2>
+            ></div>
             <div
               style={{
-                // "border-width": "2px",
-                // "border-style": "solid",
-                // "border-color": "red",
-                width: "100%",
-                "justify-content": "space-evenly",
+                "border-width": "2px",
+                "border-style": "solid",
+                // height: "70px",
+                "background-color": "#122932",
+                "padding-top": "10px",
+                "border-color": "#122932",
+
                 display: "flex",
-                "flex-direction": "row",
-                margin: 0,
-                top: 0,
-                "margin-top": 0,
-                padding: 0
-                // height: "20px"
+                justifyContent: "center",
+                alignItems: "center",
+                flexDirection: "column",
+                "border-right-color": "white"
               }}
             >
-              <p
+              <Typography
                 style={{
                   color: "white",
+                  "font-family": "Helvetica",
+                  "font-weight": "200"
+                }}
+                variant="h4"
+              >
+                Law Check{" "}
+              </Typography>
+            </div>
+            <div
+              style={{
+                "border-width": "2px",
+                "border-style": "solid",
+                "border-color": "#122932",
+                height: "70px",
+                "background-color": "#122932",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                flexDirection: "column"
+              }}
+            >
+              <Typography
+                variant="h5"
+                component="h2"
+                style={{
+                  color: "white",
+                  "padding-bottom": "10px"
+                }}
+              >
+                Bundesgesetz über den Datenschutz (DSG)
+              </Typography>
+              <div
+                style={{
+                  width: "100%",
+                  "justify-content": "space-evenly",
+                  display: "flex",
+                  "flex-direction": "row",
                   margin: 0,
                   top: 0,
                   "margin-top": 0,
                   padding: 0
+                  // height: "20px"
                 }}
               >
-                Stand am 1. Januar 2014
-              </p>
-              <p
-                style={{
-                  color: "white",
-                  margin: 0,
-                  top: 0,
-                  "margin-top": 0,
-                  padding: 0
-                }}
-              >
-                Stand am 1. März 2019
-              </p>
+                <Typography
+                  onClick={() =>
+                    window.open(
+                      "https://www.admin.ch/opc/de/classified-compilation/19920153/201401010000/235.1.pdf"
+                    )
+                  }
+                  variant="h5"
+                  style={{
+                    color: "white",
+                    "padding-bottom": "10px",
+                    width: "50vw",
+                    "text-align": "center",
+                    margin: 0,
+                    top: 0,
+                    "margin-top": 0,
+                    padding: 0
+                  }}
+                >
+                  1. Januar 2014
+                </Typography>
+                <Typography
+                  onClick={() =>
+                    window.open(
+                      "https://www.admin.ch/opc/de/classified-compilation/19920153/201903010000/235.1.pdf"
+                    )
+                  }
+                  variant="h5"
+                  style={{
+                    color: "white",
+                    "padding-bottom": "10px",
+                    width: "50vw",
+                    "text-align": "center",
+                    margin: 0,
+                    top: 0,
+                    "margin-top": 0,
+                    padding: 0
+                  }}
+                >
+                  1. März 2019
+                </Typography>
+              </div>
+            </div>
+            <div className="App">
+              {this.state.longestLength.map(
+                (item, key) =>
+                  key < 20 &&
+                  key > 0 && (
+                    <div className="Messages">
+                      {/* {key < 20 && console.log(key + this.state.textLeft[key].value)} */}
+
+                      {/* {this.state.textLeft.map((line, key) => ( */}
+                      <CardOurs
+                        key={key}
+                        color={"rgba(255,238,240,1"}
+                        text={key + this.state.textLeft[key].value}
+                      />
+                      <CardOurs
+                        key={key}
+                        color={"rgba(229,256,237,1"}
+                        text={key + this.state.textRight[key].value}
+                      />
+                    </div>
+                  )
+              )}
             </div>
           </div>
-          <div className="App">
-            {/* {this.state.res.map((element, key) => {
-            if (element.removed) {
-              return (
-                <div className="App-headerLeft">
-                  <Card key={key} color={"red"} text={key + element.value} />
+        );
+      } else if (this.state.showLawCheck === false) {
+        if (this.state.textLeft.length !== 0) {
+          return (
+            <div
+              style={{
+                width: "100vw",
+                display: "flex",
+                "flex-direction": "row"
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  "min-height": "100vh",
+                  "background-color": "#122932",
+                  width: "13vw",
+                  "flex-direction": "column",
+                  "align-items": "center"
+                }}
+              >
+                <img
+                  style={{ width: "100%", "margin-top": "20px" }}
+                  src={title}
+                  alt=""
+                />
+                <div
+                  style={{
+                    display: "flex",
+                    // "border-radius": 150,
+                    // "border-color": "white",
+                    "justify-content": "center",
+                    "margin-top": "20px",
+                    "margin-bottom": "20px"
+                  }}
+                >
+                  <img
+                    style={{
+                      width: "150px",
+                      height: "150px",
+                      "border-radius": "10px"
+                    }}
+                    src={chris}
+                    alt=""
+                  />
                 </div>
-              );
-            } else if (element.added) {
-              return (
-                <div className="App-headerRight">
-                  <Card key={key} color={"green"} text={key + element.value} />
+                {/* <p
+                  style={{
+                    display: "flex",
+                    "justify-content": "center",
+                    color: "white",
+                    "font-size": "16px",
+                    "font-weight": "600",
+                    "font-family": "Baskerville"
+                  }}
+                > */}
+                <Typography
+                  style={{
+                    color: "white"
+                  }}
+                  variant="h5"
+                  // component="h1"
+                >
+                  Christoph Küng
+                </Typography>
+                {/* </p> */}
+                <Button
+                  style={{ width: "90%", "margin-top": "8px" }}
+                  variant="contained"
+                  color="#ffffff"
+                >
+                  Profile{" "}
+                </Button>
+                <Button
+                  style={{ width: "90%", "margin-top": "8px" }}
+                  variant="contained"
+                  color="#ffffff"
+                >
+                  Settings{" "}
+                </Button>
+                <Button
+                  style={{ width: "90%", "margin-top": "8px" }}
+                  variant="contained"
+                  color="#ffffff"
+                >
+                  Areas of Law{" "}
+                </Button>
+                <div
+                  style={{
+                    display: "flex",
+                    width: "80%",
+                    "flex-direction": "column",
+                    "flex-wrap": "wrap",
+                    "justify-content": "center"
+                  }}
+                >
+                  <FormControlLabel
+                    style={{ color: "white" }}
+                    control={
+                      <Checkbox
+                        style={{ color: "white" }}
+                        onChange={() =>
+                          this.setState({
+                            clickedVStg: !this.state.clickedVStg
+                          })
+                        }
+                        checked={this.state.clickedVStg}
+                        // checkedIcon={<CheckBoxIcon fontSize="small" />}
+                      />
+                    }
+                    label="VStG"
+                  />
+                  <FormControlLabel
+                    style={{ color: "white" }}
+                    control={
+                      <Checkbox
+                        style={{ color: "white" }}
+                        checked={true}
+                        // checkedIcon={<CheckBoxIcon fontSize="small" />}
+                      />
+                    }
+                    label="URG"
+                  />
+                  <FormControlLabel
+                    style={{ color: "white" }}
+                    control={
+                      <Checkbox
+                        style={{ color: "white" }}
+                        checked={true}
+                        // checkedIcon={<CheckBoxIcon fontSize="small" />}
+                      />
+                    }
+                    label="Strafprozess"
+                  />
+                  <FormControlLabel
+                    style={{ color: "white" }}
+                    control={
+                      <Checkbox
+                        style={{ color: "white" }}
+                        checked={true}
+                        // checkedIcon={<CheckBoxIcon fontSize="small" />}
+                      />
+                    }
+                    label="DSG"
+                  />
+                  <FormControlLabel
+                    style={{ color: "white" }}
+                    control={
+                      <Checkbox
+                        style={{ color: "white" }}
+                        checked={false}
+                        // checkedIcon={<CheckBoxIcon fontSize="small" />}
+                      />
+                    }
+                    label="ZGB"
+                  />
+                  <FormControlLabel
+                    style={{ color: "white" }}
+                    control={
+                      <Checkbox
+                        style={{ color: "white" }}
+                        checked={false}
+                        // checkedIcon={<CheckBoxIcon fontSize="small" />}
+                      />
+                    }
+                    label="OR"
+                  />
                 </div>
-              );
-            }
-          })} */}
-            {this.state.longestLength.map(
-              (item, key) =>
-                key < 20 &&
-                key > 0 && (
-                  <div className="Messages">
-                    {/* {key < 20 && console.log(key + this.state.textLeft[key].value)} */}
-
-                    {/* {this.state.textLeft.map((line, key) => ( */}
-                    <Card
-                      key={key}
-                      color={"rgba(229,256,237,1"}
-                      text={key + this.state.textLeft[key].value}
-                    />
-                    <Card
-                      key={key}
-                      color={"rgba(255,238,240,1"}
-                      text={key + this.state.textRight[key].value}
-                    />
+                <Button
+                  style={{ width: "90%", "margin-top": "8px" }}
+                  variant="contained"
+                  color="#ffffff"
+                >
+                  Logout{" "}
+                </Button>
+              </div>
+              {/* Law Check */}
+              {
+                <div style={{ width: "29vw" }}>
+                  <div
+                    style={{
+                      "border-width": "2px",
+                      "border-style": "solid",
+                      "border-color": "#122932",
+                      height: "70px",
+                      "background-color": "#122932",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      flexDirection: "column",
+                      "border-right-color": "#273C44"
+                    }}
+                  >
+                    {/* <h2
+                      style={{
+                        color: "white",
+                        margin: 0,
+                        top: 0,
+                        "margin-top": 0,
+                        padding: 0,
+                        // "font-family": "Basker"
+                      }}
+                    > */}
+                    <Typography
+                      style={{
+                        color: "white",
+                        "font-family": "Helvetica",
+                        "font-weight": "200"
+                      }}
+                      variant="h4"
+                      // component="h1"
+                    >
+                      Law Check{" "}
+                    </Typography>
+                    {/* </h2> */}
                   </div>
-                )
-            )}
 
-            {/* <div className="App-headerRight">
-            {this.state.textRight.map((line, key) => (
-              //console.log(line.value, key)
-              // <p key={key}>{line.value}</p>
-              <Card
-                key={key}
-                color={"rgba(229,256,237,1)"}
-                text={key + line.value}
-              />
-            ))}
-          </div> */}
-          </div>{" "}
-        </div>
-      );
+                  <Card className={classes.card} style={{ margin: "15px" }}>
+                    <CardContent>
+                      <div style={{ display: "flex", "flex-direction": "row" }}>
+                        <img
+                          src="https://cdn5.vectorstock.com/i/thumb-large/40/74/paragraph-symbol-vector-18444074.jpg"
+                          className="card-img-top"
+                          style={{
+                            width: "100px",
+                            height: "100px",
+                            "border-radius": "10px",
+                            margin: "5px"
+                          }}
+                          alt="..."
+                        />
+                        <div style={{ "margin-left": "10px" }}>
+                          <Typography variant="h5" component="h2">
+                            Bundesgesetz über den Datenschutz (DSG)
+                          </Typography>
+                          <Typography
+                            className={classes.pos}
+                            color="textSecondary"
+                          >
+                            1. März 2019 compared to 1. Januar 2014
+                          </Typography>
+                          <Typography variant="body2" component="p">
+                            <ul>
+                              <li>Art. 26</li>
+                              <li>Art. 26a</li>
+                              <li>Art. 26b</li>
+                              <li>Art. 31</li>
+                            </ul>
+                          </Typography>
+                        </div>
+                      </div>
+                    </CardContent>
+                    <CardActions
+                      style={{
+                        width: "100%",
+                        // display: "flex",
+                        "flex-direction": "row",
+                        "justify-content": "space-between"
+                        // "margin-left": "10px"
+                      }}
+                    >
+                      <Button
+                        onClick={() => this.setState({ showLawCheck: true })}
+                        size="small"
+                      >
+                        Learn More
+                      </Button>
+                      <div style={{ "margin-right": "10px" }}>
+                        <IconButton aria-label="add to favorites">
+                          <FavoriteIcon />
+                        </IconButton>
+                      </div>
+                    </CardActions>
+                  </Card>
+
+                  {this.state.clickedVStg && (
+                    <Card className={classes.card} style={{ margin: "15px" }}>
+                      <CardContent>
+                        <div
+                          style={{ display: "flex", "flex-direction": "row" }}
+                        >
+                          <img
+                            src="https://cdn5.vectorstock.com/i/thumb-large/40/74/paragraph-symbol-vector-18444074.jpg"
+                            className="card-img-top"
+                            style={{
+                              width: "100px",
+                              height: "100px",
+                              "border-radius": "10px",
+                              margin: "5px"
+                            }}
+                            alt="..."
+                          />
+                          <div style={{ "margin-left": "10px" }}>
+                            <Typography variant="h5" component="h2">
+                              Bundesgesetz über die Verrechnungssteuer (VStG){" "}
+                            </Typography>
+                            <Typography
+                              className={classes.pos}
+                              color="textSecondary"
+                            >
+                              2. Juli 2019 compared to 1. Januar 2019
+                            </Typography>
+                            <Typography variant="body2" component="p">
+                              <ul>
+                                <li>Art. 4</li>
+                                <li>Art. 4a</li>
+                              </ul>
+                            </Typography>
+                          </div>
+                        </div>
+                      </CardContent>
+                      <CardActions
+                        style={{
+                          width: "100%",
+                          // display: "flex",
+                          "flex-direction": "row",
+                          "justify-content": "space-between"
+                          // "margin-left": "10px"
+                        }}
+                      >
+                        <Button
+                          onClick={() => this.setState({ showLawCheck: true })}
+                          size="small"
+                        >
+                          Learn More
+                        </Button>
+                        <div style={{ "margin-right": "10px" }}>
+                          <IconButton aria-label="add to favorites">
+                            <FavoriteIcon />
+                          </IconButton>
+                        </div>
+                      </CardActions>
+                    </Card>
+                  )}
+
+                  <Card className={classes.card} style={{ margin: "15px" }}>
+                    <CardContent>
+                      <div style={{ display: "flex", "flex-direction": "row" }}>
+                        <img
+                          src="https://cdn5.vectorstock.com/i/thumb-large/40/74/paragraph-symbol-vector-18444074.jpg"
+                          className="card-img-top"
+                          style={{
+                            width: "100px",
+                            height: "100px",
+                            "border-radius": "10px",
+                            margin: "5px"
+                          }}
+                          alt="..."
+                        />
+                        <div style={{ "margin-left": "10px" }}>
+                          <Typography variant="h5" component="h2">
+                            Urheberrechtsgesetz (URG){" "}
+                          </Typography>
+                          <Typography
+                            className={classes.pos}
+                            color="textSecondary"
+                          >
+                            1. Januar 2017 compared to 1. Januar 2011
+                          </Typography>
+                          <Typography variant="body2" component="p">
+                            <ul>
+                              <li>Art. 75</li>
+                              <li>Art. 76</li>
+                              <li>Art. 77</li>
+                            </ul>
+                          </Typography>
+                        </div>
+                      </div>
+                    </CardContent>
+                    <CardActions
+                      style={{
+                        width: "100%",
+                        // display: "flex",
+                        "flex-direction": "row",
+                        "justify-content": "space-between"
+                        // "margin-left": "10px"
+                      }}
+                    >
+                      <Button
+                        onClick={() => this.setState({ showLawCheck: true })}
+                        size="small"
+                      >
+                        Learn More
+                      </Button>
+                      <div style={{ "margin-right": "10px" }}>
+                        <IconButton aria-label="add to favorites">
+                          <FavoriteIcon />
+                        </IconButton>
+                      </div>
+                    </CardActions>
+                  </Card>
+                </div>
+              }
+
+              {/* Court check */}
+              <div style={{ width: "29vw" }}>
+                <div
+                  style={{
+                    "border-width": "2px",
+                    "border-style": "solid",
+                    height: "70px",
+                    "border-color": "#122932",
+                    "background-color": "#122932",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    flexDirection: "column",
+                    "border-right-color": "#273C44"
+                  }}
+                >
+                  {/* <h2
+                    style={{
+                      color: "white",
+                      margin: 0,
+                      top: 0,
+                      "margin-top": 0,
+                      padding: 0
+                    }}
+                  > */}
+                  <Typography
+                    style={{
+                      color: "white",
+                      "font-family": "Helvetica",
+                      "font-weight": "200"
+                    }}
+                    variant="h4"
+                    // component="h1"
+                  >
+                    Court Check{" "}
+                  </Typography>
+                  {/* </h2> */}
+                </div>
+
+                {(this.state.courtCheck === "loading" ||
+                  this.state.courtCheck2 === "loading") && (
+                  <div
+                    style={{
+                      display: "flex",
+                      "justify-content": "center",
+                      width: "100%",
+                      height: "100vh",
+                      "flex-direction": "column",
+                      "align-items": "center"
+                    }}
+                  >
+                    <Typography
+                      style={{
+                        "text-align": "center"
+                        // color: "white",
+                        // "font-family": "Helvetica",
+                        // "font-weight": "200"
+                      }}
+                      variant="h5"
+                      // component="h1"
+                    >
+                      {this.state.scrapingStatus}:<br />
+                      {this.state.clickedVStg && (
+                        <div>VStG, URG, Strafprozess, DSG</div>
+                      )}
+                      {!this.state.clickedVStg && (
+                        <div> URG, Strafprozess, DSG</div>
+                      )}
+                    </Typography>
+
+                    <img src={loadingGif} alt="loading..." />
+                  </div>
+                )}
+                {this.state.courtCheck !== "loading" &&
+                  this.state.clickedVStg &&
+                  this.state.courtCheck.map((element, index) => (
+                    <Card className={classes.card} style={{ margin: "15px" }}>
+                      <CardContent>
+                        <div
+                          style={{ display: "flex", "flex-direction": "row" }}
+                        >
+                          <img
+                            src="https://i1.wp.com/www.zanetti.ch/wp-content/uploads/2018/02/BGer.jpg?resize=672%2C372&ssl=1"
+                            className="card-img-top"
+                            style={{
+                              width: "134.4px",
+                              height: "74.4px",
+                              "border-radius": "10px",
+                              margin: "5px"
+                            }}
+                            alt="..."
+                          />
+                          <div style={{ "margin-left": "10px" }}>
+                            <Typography variant="h5" component="h2">
+                              {element.article + " "}
+                              {element.keyword}
+                            </Typography>
+                            <Typography
+                              className={classes.pos}
+                              color="textSecondary"
+                            >
+                              {element.date}
+                            </Typography>
+                            <Typography variant="body2" component="p">
+                              {element.info1}
+                              <br />
+                              {element.info2}
+                            </Typography>
+                          </div>
+                        </div>
+                      </CardContent>
+                      <CardActions
+                        style={{
+                          width: "100%",
+                          // display: "flex",
+                          "flex-direction": "row",
+                          "justify-content": "space-between"
+                          // "margin-left": "10px"
+                        }}
+                      >
+                        <Button
+                          onClick={() => window.open(element.link, "_blank")}
+                          size="small"
+                        >
+                          Learn More
+                        </Button>
+                        <div style={{ "margin-right": "10px" }}>
+                          <IconButton aria-label="share">
+                            <ShareIcon
+                              onClick={() => {
+                                window.open(
+                                  "mailto:?Subject=Your Daily Cup of Law Powered by Dr. Law&body=" +
+                                    this.state.emailText1 +
+                                    element.link
+                                );
+                              }}
+                            />
+                          </IconButton>
+                          <IconButton
+                            onClick={() =>
+                              this.setState({
+                                heartColor: !this.state.heartColor
+                              })
+                            }
+                            aria-label="add to favorites"
+                          >
+                            <FavoriteIcon
+                              style={{
+                                color: this.state.heartColor ? "red" : ""
+                              }}
+                            />
+                          </IconButton>
+                        </div>
+                      </CardActions>
+                    </Card>
+                  ))}
+                {this.state.courtCheck2 !== "loading" &&
+                  this.state.courtCheck2.map((element, index) => (
+                    <Card className={classes.card} style={{ margin: "15px" }}>
+                      <CardContent>
+                        <div
+                          style={{ display: "flex", "flex-direction": "row" }}
+                        >
+                          <img
+                            src="https://i1.wp.com/www.zanetti.ch/wp-content/uploads/2018/02/BGer.jpg?resize=672%2C372&ssl=1"
+                            className="card-img-top"
+                            style={{
+                              width: "134.4px",
+                              height: "74.4px",
+                              "border-radius": "10px",
+                              margin: "5px"
+                            }}
+                            alt="..."
+                          />
+                          <div style={{ "margin-left": "10px" }}>
+                            <Typography variant="h5" component="h2">
+                              {element.article + " "}
+                              {element.keyword}
+                            </Typography>
+                            <Typography
+                              className={classes.pos}
+                              color="textSecondary"
+                            >
+                              {element.date}
+                            </Typography>
+                            <Typography variant="body2" component="p">
+                              {element.info1}
+                              <br />
+                              {element.info2}
+                            </Typography>
+                          </div>
+                        </div>
+                      </CardContent>
+                      <CardActions
+                        style={{
+                          width: "100%",
+                          // display: "flex",
+                          "flex-direction": "row",
+                          "justify-content": "space-between"
+                          // "margin-left": "10px"
+                        }}
+                      >
+                        <Button
+                          onClick={() => window.open(element.link, "_blank")}
+                          size="small"
+                        >
+                          Learn More
+                        </Button>
+                        <div style={{ "margin-right": "10px" }}>
+                          <IconButton aria-label="share">
+                            <ShareIcon
+                              onClick={() => {
+                                window.open(
+                                  "mailto:?Subject=Your Daily Cup of Law Powered by Dr. Law&body=" +
+                                    this.state.emailText1 +
+                                    element.link
+                                );
+                              }}
+                            />
+                          </IconButton>
+                          <IconButton aria-label="add to favorites">
+                            <FavoriteIcon />
+                          </IconButton>
+                        </div>
+                      </CardActions>
+                    </Card>
+                  ))}
+              </div>
+
+              {/* Court check ends*/}
+              {/* News check */}
+
+              <div style={{ width: "29vw" }}>
+                <div
+                  style={{
+                    "border-width": "2px",
+                    "border-style": "solid",
+                    height: "70px",
+                    "border-color": "#122932",
+
+                    "background-color": "#122932",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    flexDirection: "column"
+                    // "border-right-color": "white"
+                  }}
+                >
+                  {/* <h2
+                    style={{
+                      color: "white",
+                      margin: 0,
+                      top: 0,
+                      "margin-top": 0,
+                      padding: 0
+                    }}
+                  > */}
+                  <Typography
+                    style={{
+                      color: "white",
+                      "font-family": "Helvetica",
+                      "font-weight": "200"
+                    }}
+                    variant="h4"
+                    // component="h1"
+                  >
+                    News Check
+                  </Typography>
+                  {/* </h2> */}
+                </div>
+                {this.state.scrapedNews !== "loading" &&
+                  this.state.scrapedNews.map((element, index) => (
+                    <Card className={classes.card} style={{ margin: "15px" }}>
+                      <CardContent>
+                        <div
+                          style={{ display: "flex", "flex-direction": "row" }}
+                        >
+                          <img
+                            src={element.image_link}
+                            className="card-img-top"
+                            style={{
+                              "border-radius": "10px",
+                              margin: "5px"
+                            }}
+                            alt="..."
+                          />
+                          <div style={{ "margin-left": "10px" }}>
+                            <Typography variant="h5" component="h2">
+                              {element.title}
+                            </Typography>
+                            <Typography
+                              className={classes.pos}
+                              color="textSecondary"
+                            >
+                              {new Date(element.date).toLocaleDateString()}
+                            </Typography>
+                          </div>
+                        </div>
+                      </CardContent>
+                      <CardActions
+                        style={{
+                          width: "100%",
+                          // display: "flex",
+                          "flex-direction": "row",
+                          "justify-content": "space-between"
+                          // "margin-left": "10px"
+                        }}
+                      >
+                        <Button
+                          onClick={() => window.open(element.url, "_blank")}
+                          size="small"
+                        >
+                          Learn More
+                        </Button>
+                        <div style={{ "margin-right": "10px" }}>
+                          <IconButton aria-label="share">
+                            <ShareIcon
+                              onClick={() => {
+                                window.open(
+                                  "mailto:?Subject=Your Daily Cup of Law Powered by Dr. Law&body=" +
+                                    this.state.emailText1 +
+                                    element.url
+                                );
+                              }}
+                            />
+                          </IconButton>
+                          <IconButton aria-label="add to favorites">
+                            <FavoriteIcon />
+                          </IconButton>
+                        </div>
+                      </CardActions>
+                    </Card>
+                  ))}
+              </div>
+            </div>
+          );
+        } else {
+          return <div>nonon </div>;
+        }
+      } else {
+        return (
+          <div onClick={() => this.setState({ landingPage: false })}>
+            <img
+              style={{ width: "100%", height: "100vh" }}
+              src={suits}
+              alt=""
+            />
+          </div>
+        );
+      }
     } else {
       return (
-        <div>
-          <p>no</p>
+        <div onClick={() => this.setState({ landingPage: false })}>
+          <img style={{ width: "100%", height: "100vh" }} src={suits} alt="" />
         </div>
       );
     }
   }
 }
 
-class Card extends React.Component {
+class CardOurs extends React.Component {
   render() {
+    const classes = useStyles;
+
     return (
-      <div
+      <Card
+        className={classes.card}
         style={{
-          "background-color": this.props.color,
-          "border-radius": 10,
-          color: "black",
-          "text-align": "left",
-          padding: "0px 8px"
+          margin: "15px",
+          width: "40vw",
+          "background-color": this.props.color
         }}
-        className="CardStyle"
       >
-        <p style={{ fontFamily: "Times" }}>{this.props.text}</p>
-      </div>
+        <CardContent>
+          <Typography
+            style={{
+              // color: "white",
+              "text-align": "left",
+              "font-family": "Helvetica",
+              "font-weight": "400"
+            }}
+            variant="h6"
+          >
+            {this.props.text}
+          </Typography>
+        </CardContent>
+      </Card>
     );
   }
 }
