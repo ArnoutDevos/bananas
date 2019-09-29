@@ -13,6 +13,11 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 scraper = Scraper()
 
+@app.route('/majorlaws/<url>', methods=['GET'])
+def get_majorlaws(url):
+    result = scraper.scrapMajorLaws(url=url)
+    return jsonify(result)
+
 @app.route('/laws/<keyword>', methods=['GET'])
 def get_laws(keyword):
     result = scraper.getLaw(keyword=keyword)

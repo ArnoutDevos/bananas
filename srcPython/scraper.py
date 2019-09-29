@@ -6,6 +6,10 @@ from bs4 import BeautifulSoup
 import re
 import pickle
 from pathlib import Path
+import re
+from datetime import datetime
+import requests
+from tika import parser
 
 class Scraper:
 
@@ -154,5 +158,99 @@ class Scraper:
                     ix+=1
         return result
     
-    def somefunc():
-        print(blaa)
+    def scrapMajorLaws(self, url=None):
+        # Set the URL you want to webscrape from
+        
+        
+        if url == 'Strafgesetzbuch':
+            url = 'https://www.admin.ch/opc/de/classified-compilation/19370083/index.html'
+        else:
+            if url == 'Zivilgesetzbuch':
+                url = 'https://www.admin.ch/opc/de/classified-compilation/19070042/index.html'
+            else:
+                if url == 'Verrechnungssteuer':
+                    url = 'https://www.admin.ch/opc/de/classified-compilation/19650189/index.html'   
+                else:
+                    if url == 'Urheberrecht':
+                        url = 'https://www.admin.ch/opc/de/classified-compilation/19920251/index.html' 
+                    else: #Default: Datenschutzgesetzt
+                        url = 'https://www.admin.ch/opc/de/classified-compilation/19920153/index.html'
+        
+            
+        # Connect to the URL
+        response = requests.get(url)
+
+        # Parse HTML and save to BeautifulSoup object¶
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        #a_tags = soup.findAll('table', attrs={"id":"entry-thumb"}))
+        for cell in soup.select('body table td'):
+            return cell
+        temp = {}
+        result = {}
+        date = 0
+        #return soup.find_all("table", attrs={"id": "versionContent"})
+        for item in soup.find_all('a', attrs={'target': '_blank'}):
+            
+            pdfurl = item.get('href')
+            
+            #date = item.find("td", attrs={"style":"'padding-left: 0'"})
+            #pdfurl = item.find("a", attrs={'target': "_blank"}).get('href')
+            
+            if('.pdf' in pdfurl):
+                date+=1
+                temp[date] = pdfurl
+                
+        url_short = url
+        url_short = url_short.replace("index.html", "")
+        
+        
+
+        download_url_new = url_short+temp[1]
+        download_url_old = url_short+temp[2]
+
+        ## Loading Files
+        file_new = 'new.pdf'
+        file_old = 'old.pdf'
+        myfile = requests.get(download_url_new)
+        open(file_new, 'wb').write(myfile.content)
+        myfile = requests.get(download_url_old)
+        open('old.pdf', 'wb').write(myfile.content)
+        
+        # Parse data from file
+        file_data_new = parser.from_file(file_new)
+        # Get files text content
+        text_new = ''''''
+        text_new = file_data_new['content']
+        text_new = text_new.replace("\t","")
+        text_new = text_new.replace("\n","")
+        text_new = text_new.replace("Error Page (404)","")
+        text_new = " ".join(text_new.split())
+        
+        file_data_old = parser.from_file(file_old)
+        # Get files text content
+        text_old = file_data_old['content']
+        text_old = text_old.replace("\t","")
+        text_old = text_old.replace("\n","")
+        text_old = text_old.replace("Error Page (404)","")
+        text_old = " ".join(text_old.split())
+        
+        url_latest=temp[1]
+        url_older =temp[2]
+        result[extract_date(url_latest)] = text_new
+        result[extract_date(url_older)] = text_old
+        #result[url_latest] = url_latest
+        #result[url_older] = url_older
+#            if (temp[1] != None and temp[2] != None):
+#                text_latest = temp[1]
+#                text_old = temp[2]
+#                result[extract_date(text_latest)] = text_latest
+#                result[extract_date(text_old)] = text_old
+                
+        return result
+            
+def extract_date(url):
+    match = re.search(r'\d{4}\d{2}\d{2}', url)
+    date = datetime.strptime(match.group(), '%Y%m%d').date()
+    return date.strftime("%m.%d.%Y")
+        
