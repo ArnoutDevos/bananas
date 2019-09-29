@@ -18,8 +18,251 @@ import FavoriteIcon from "@material-ui/icons/Favorite";
 import Checkbox, { CheckboxProps } from "@material-ui/core/Checkbox";
 import CheckBoxIcon from "@material-ui/icons/CheckBox";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
+import { PieChart, Pie, Sector } from "recharts";
 
 // import * as whatever from "bootstrap/dist/css/bootstrap.css";
+
+function getRandomColor() {
+  var letters = "0123456789ABCDEF";
+  var color = "#";
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+const data1 = [
+  { name: "Family Law Research", value: 300, fill: "#EF2D56" },
+  { name: "Family Law Admin", value: 50, fill: "#1446A0" },
+  { name: "Family Law Communication", value: 150, fill: "#2BA84A" }
+];
+
+const data2 = [
+  { name: "Contract Law Research", value: 500, fill: "#EF2D56" },
+  { name: "Contract Law Admin", value: 400, fill: "#1446A0" },
+  { name: "Contract Law Communication", value: 100, fill: "#2BA84A" }
+];
+
+const data3 = [
+  { name: "Criminal Law Research", value: 500, fill: "#EF2D56" },
+  { name: "Criminal Law Admin", value: 200, fill: "#1446A0" },
+  { name: "Criminal Law Communication", value: 1000, fill: "#2BA84A" }
+];
+
+const renderActiveShape = props => {
+  const RADIAN = Math.PI / 180;
+  const {
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    startAngle,
+    endAngle,
+    fill,
+    payload,
+    percent,
+    value
+  } = props;
+  const sin = Math.sin(-RADIAN * midAngle);
+  const cos = Math.cos(-RADIAN * midAngle);
+  const sx = cx + (outerRadius + 10) * cos;
+  const sy = cy + (outerRadius + 10) * sin;
+  const mx = cx + (outerRadius + 30) * cos;
+  const my = cy + (outerRadius + 30) * sin;
+  const ex = mx + (cos >= 0 ? 1 : -1) * 22;
+  const ey = my;
+  const textAnchor = cos >= 0 ? "start" : "end";
+
+  return (
+    <g>
+      <text x={cx} y={cy} dy={8} textAnchor="middle" fill={fill}>
+        {payload.name}
+      </text>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+      />
+      <Sector
+        cx={cx}
+        cy={cy}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        innerRadius={outerRadius + 6}
+        outerRadius={outerRadius + 10}
+        fill={fill}
+      />
+      <path
+        d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`}
+        stroke={fill}
+        fill="none"
+      />
+      <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
+      <text
+        x={ex + (cos >= 0 ? 1 : -1) * 12}
+        y={ey}
+        textAnchor={textAnchor}
+        fill="#333"
+      >{`Amount ${value} CHF.-`}</text>
+      <text
+        x={ex + (cos >= 0 ? 1 : -1) * 12}
+        y={ey}
+        dy={18}
+        textAnchor={textAnchor}
+        fill="#999"
+      >
+        {`Percentage ${(percent * 100).toFixed(2)}%`}
+      </text>
+    </g>
+  );
+};
+
+class Example extends React.Component {
+  static jsfiddleUrl = "https://jsfiddle.net/alidingling/hqnrgxpj/";
+
+  state = {
+    activeIndex1: 0,
+    activeIndex2: 0,
+    activeIndex3: 0,
+    activeIndex4: 0
+  };
+
+  onPieEnter1 = (data, index) => {
+    this.setState({
+      activeIndex1: index
+    });
+  };
+
+  onPieEnter2 = (data, index) => {
+    this.setState({
+      activeIndex2: index
+    });
+  };
+
+  onPieEnter3 = (data, index) => {
+    this.setState({
+      activeIndex3: index
+    });
+  };
+
+  onPieEnter4 = (data, index) => {
+    this.setState({
+      activeIndex4: index
+    });
+  };
+  render() {
+    return (
+      <div
+        style={{
+          width: "100%",
+          height: "70px",
+          "flex-direction": "row"
+        }}
+      >
+        <div
+          onClick={() => {
+            this.props.updateState(false);
+            console.log("aha");
+          }}
+          className={"far fa-times-circle"}
+          style={{
+            "font-size": "48px",
+            color: "red",
+            position: "absolute",
+            top: "16px",
+            left: "16px"
+          }}
+        ></div>
+        <div
+          style={{
+            width: "100vw",
+            height: "70px",
+            "background-color": "black",
+            "justify-content": "space-evenly",
+            display: "flex",
+            "flex-direction": "row",
+            "align-items": "center"
+          }}
+        >
+          <Typography
+            style={{
+              color: "white",
+              "font-family": "Helvetica",
+              "font-weight": "200"
+            }}
+            variant="h4"
+          >
+            Family Law Cases
+          </Typography>
+          <Typography
+            style={{
+              color: "white",
+              "font-family": "Helvetica",
+              "font-weight": "200"
+            }}
+            variant="h4"
+          >
+            Criminal Law Cases
+          </Typography>
+          <Typography
+            style={{
+              color: "white",
+              "font-family": "Helvetica",
+              "font-weight": "200"
+            }}
+            variant="h4"
+          >
+            Contract Law Cases
+          </Typography>
+        </div>
+
+        <PieChart width={4000} height={4000}>
+          <Pie
+            activeIndex={this.state.activeIndex1}
+            activeShape={renderActiveShape}
+            data={data1}
+            cx={300}
+            cy={400}
+            innerRadius={130}
+            outerRadius={150}
+            fill="#8884d8"
+            dataKey="value"
+            onMouseEnter={this.onPieEnter1}
+          />
+          <Pie
+            activeIndex={this.state.activeIndex2}
+            activeShape={renderActiveShape}
+            data={data2}
+            cx={1300}
+            cy={400}
+            innerRadius={130}
+            outerRadius={150}
+            fill="#8884d8"
+            dataKey="value"
+            onMouseEnter={this.onPieEnter2}
+          />
+
+          <Pie
+            activeIndex={this.state.activeIndex4}
+            activeShape={renderActiveShape}
+            data={data3}
+            cx={800}
+            cy={400}
+            innerRadius={130}
+            outerRadius={150}
+            fill="#8884d8"
+            dataKey="value"
+            onMouseEnter={this.onPieEnter4}
+          />
+        </PieChart>
+      </div>
+    );
+  }
+}
 
 const useStyles = makeStyles({
   card: {
@@ -52,8 +295,14 @@ export default class App extends React.Component {
       "Dear Colleague,%0D%0A%0D%0AThis change in the law might be of interest to you: ",
     emailText2: "%0D%0A%0D%0APowered by Dr. Law",
     heartColor: true,
-    clickedVStg: true
+    clickedVStg: true,
+    showPie: false
   };
+
+  _handleUpdatePie = state => {
+    this.setState({ showPie: state });
+  };
+
   _scrapeData = () => {
     fetch("http://localhost:5000/scrapeall/")
       .then(res => {
@@ -275,7 +524,7 @@ export default class App extends React.Component {
           </div>
         );
       } else if (this.state.showLawCheck === false) {
-        if (this.state.textLeft.length !== 0) {
+        if (this.state.textLeft.length !== 0 && this.state.showPie === false) {
           return (
             <div
               style={{
@@ -442,6 +691,15 @@ export default class App extends React.Component {
                   />
                 </div>
                 <Button
+                  onClick={() => this.setState({ showPie: true })}
+                  style={{ width: "90%", "margin-top": "8px" }}
+                  variant="contained"
+                  color="#ffffff"
+                >
+                  Billing Analytics{" "}
+                </Button>
+
+                <Button
                   style={{ width: "90%", "margin-top": "8px" }}
                   variant="contained"
                   color="#ffffff"
@@ -489,7 +747,6 @@ export default class App extends React.Component {
                     </Typography>
                     {/* </h2> */}
                   </div>
-
                   <Card className={classes.card} style={{ margin: "15px" }}>
                     <CardContent>
                       <div style={{ display: "flex", "flex-direction": "row" }}>
@@ -1003,8 +1260,8 @@ export default class App extends React.Component {
               </div>
             </div>
           );
-        } else {
-          return <div>nonon </div>;
+        } else if (this.state.showPie) {
+          return <Example updateState={this._handleUpdatePie} />;
         }
       } else {
         return (
